@@ -61,7 +61,7 @@ section { display: flex; flex-direction: column; gap: 14px; }
 
 /* the brain stack as network layers */
 .stack { display: flex; flex-direction: column-reverse; gap: 6px; }
-.layer { display: grid; grid-template-columns: 3.2rem 1fr auto; gap: 14px; align-items: center; padding: 14px 16px; border-radius: 8px; color: var(--ink); }
+.layer { display: grid; grid-template-columns: 4.2rem 1fr auto; gap: 14px; align-items: center; padding: 14px 16px; border-radius: 8px; color: var(--ink); }
 .layer:nth-child(1) { background: var(--l1); } .layer:nth-child(2) { background: var(--l2); }
 .layer:nth-child(3) { background: var(--l3); } .layer:nth-child(4) { background: var(--l4); color: #fff; }
 .layer .n { font: 500 0.75rem var(--mono); letter-spacing: 0.08em; }
@@ -150,10 +150,10 @@ a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
     <h2>A four-layer brain stack</h2>
     <p>Each layer only gets a task if the one below it fails its own checks. Most tasks should never reach the slow giants.</p>
     <div class="stack">
-      <div class="layer"><span class="n">L1</span><div class="what"><strong>Qwen3.5-9B</strong><small>quick, simple tasks</small></div><span class="spd">15–33 tok/s</span></div>
-      <div class="layer"><span class="n">L2</span><div class="what"><strong>Qwen3.6-35B-A3B</strong><small>most everyday coding · fits in RAM</small></div><span class="spd">53 tok/s</span></div>
-      <div class="layer"><span class="n">L3</span><div class="what"><strong>Qwen3-Next-80B-A3B</strong><small>hard tasks · streamed from SSD</small></div><span class="spd">2.1 tok/s</span></div>
-      <div class="layer"><span class="n">L4</span><div class="what"><strong>Qwen3.5-122B-A10B</strong><small>last resort · streamed from SSD</small></div><span class="spd">1.5 tok/s</span></div>
+      <div class="layer"><span class="n">⚡ L1</span><div class="what"><strong>Qwen3.5-9B</strong><small>quick, simple tasks</small></div><span class="spd">15–33 tok/s</span></div>
+      <div class="layer"><span class="n">🧠 L2</span><div class="what"><strong>Qwen3.6-35B-A3B</strong><small>most everyday coding · fits in RAM</small></div><span class="spd">53 tok/s</span></div>
+      <div class="layer"><span class="n">🦾 L3</span><div class="what"><strong>Qwen3-Next-80B-A3B</strong><small>hard tasks · streamed from SSD</small></div><span class="spd">2.1 tok/s</span></div>
+      <div class="layer"><span class="n">🐘 L4</span><div class="what"><strong>Qwen3.5-122B-A10B</strong><small>last resort · streamed from SSD</small></div><span class="spd">1.5 tok/s</span></div>
     </div>
     <p class="arrow">↑ a task climbs only when its checks fail · L3 and L4 share one slot and swap in about a minute</p>
   </section>
