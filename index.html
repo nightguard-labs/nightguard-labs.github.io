@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Build log: running a 122B mixture-of-experts model on a 32 GB MacBook by streaming experts from the SSD.">
+<style>body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>Code Smash TeTi Build Log</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one narrow reading column, like an engineer's notebook; the brain stack drawn as network layers */
+:root {
+  --bg: #f3f5f8;
+  --surface: #ffffff;
+  --ink: #16202e;
+  --muted: #5a6779;
+  --line: #d6dce5;
+  --accent: #2456c9;
+  --accent-soft: #e2eafb;
+  --good: #1f7a4d;
+  --bad: #b3352b;
+  --warn: #9a6a00;
+  --l1: #c9d8f6; --l2: #a9c1f0; --l3: #7f9fe4; --l4: #4f78d2;
+  --display: "Archivo", "Helvetica Neue", Arial, sans-serif;
+  --body: "IBM Plex Sans", -apple-system, "Segoe UI", sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #0f1520; --surface: #172030; --ink: #e6ebf3; --muted: #9aa7ba; --line: #2a3546;
+  --accent: #7ea2ff; --accent-soft: #1d2b47; --good: #5fcf94; --bad: #ff8577; --warn: #e8b84a;
+  --l1: #1f2c45; --l2: #263a5f; --l3: #2f4b80; --l4: #3d63ab; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #0f1520; --surface: #172030; --ink: #e6ebf3; --muted: #9aa7ba; --line: #2a3546;
+  --accent: #7ea2ff; --accent-soft: #1d2b47; --good: #5fcf94; --bad: #ff8577; --warn: #e8b84a;
+  --l1: #1f2c45; --l2: #263a5f; --l3: #2f4b80; --l4: #3d63ab; color-scheme: dark }
+
+body { background: var(--bg); color: var(--ink); font: 400 16px/1.65 var(--body); }
+.wrap { max-width: 760px; margin: 0 auto; padding-block: 40px 64px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: flex; flex-direction: column; gap: 44px; }
+h1, h2, h3 { font-family: var(--display); text-wrap: balance; margin: 0; letter-spacing: -0.01em; }
+h1 { font-size: clamp(2rem, 6vw, 3.1rem); font-weight: 800; line-height: 1.05; }
+h2 { font-size: 1.45rem; font-weight: 700; }
+h3 { font-size: 1.05rem; font-weight: 700; }
+p { margin: 0; max-width: 65ch; }
+section { display: flex; flex-direction: column; gap: 14px; }
+.eyebrow { font: 500 0.75rem/1 var(--mono); letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); }
+.lede { font-size: 1.15rem; color: var(--muted); }
+.mono { font-family: var(--mono); }
+.big { color: var(--accent); }
+
+/* memory budget */
+.budget { display: flex; flex-direction: column; gap: 10px; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 18px; }
+.row { display: grid; grid-template-columns: 9.5rem 1fr; gap: 12px; align-items: center; }
+.row span { font: 500 0.82rem/1.3 var(--mono); color: var(--muted); }
+.bar { height: 22px; border-radius: 4px; background: var(--accent-soft); position: relative; overflow: hidden; }
+.bar i { position: absolute; inset: 0 auto 0 0; background: var(--accent); border-radius: 4px; }
+.bar b { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); font: 500 0.75rem var(--mono); color: var(--ink); }
+.note { font-size: 0.85rem; color: var(--muted); }
+
+/* the brain stack as network layers */
+.stack { display: flex; flex-direction: column-reverse; gap: 6px; }
+.layer { display: grid; grid-template-columns: 3.2rem 1fr auto; gap: 14px; align-items: center; padding: 14px 16px; border-radius: 8px; color: var(--ink); }
+.layer:nth-child(1) { background: var(--l1); } .layer:nth-child(2) { background: var(--l2); }
+.layer:nth-child(3) { background: var(--l3); } .layer:nth-child(4) { background: var(--l4); color: #fff; }
+.layer .n { font: 500 0.75rem var(--mono); letter-spacing: 0.08em; }
+.layer .what { min-width: 0; }
+.layer .what strong { font-family: var(--display); font-size: 1.02rem; display: block; }
+.layer .what small { font-size: 0.85rem; opacity: 0.85; }
+.layer .spd { font: 500 0.8rem var(--mono); text-align: right; }
+.arrow { font: 500 0.78rem var(--mono); color: var(--muted); }
+
+/* tables */
+.tbl { overflow-x: auto; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); }
+table { width: 100%; border-collapse: collapse; font-size: 0.92rem; min-width: 460px; }
+th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font: 500 0.72rem var(--mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+tr:last-child td { border-bottom: 0; }
+td.num { font-family: var(--mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.pass { color: var(--good); font-weight: 600; } .fail { color: var(--bad); font-weight: 600; }
+
+/* findings */
+.findings { display: flex; flex-direction: column; gap: 12px; }
+.f { display: grid; grid-template-columns: 5.5rem 1fr; gap: 14px; padding-block: 12px; border-top: 1px solid var(--line); }
+.f .tag { font: 600 0.72rem/1.6 var(--mono); letter-spacing: 0.08em; text-transform: uppercase; }
+.tag.good { color: var(--good); } .tag.bad { color: var(--bad); } .tag.warn { color: var(--warn); }
+.f p { font-size: 0.97rem; }
+ul.next { margin: 0; padding-left: 1.2rem; display: flex; flex-direction: column; gap: 6px; max-width: 65ch; }
+.now { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 18px; gap: 12px; }
+.now-head { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+.now-head h2 { font-size: 1.1rem; }
+.dot { width: 9px; height: 9px; border-radius: 50%; background: var(--good); box-shadow: 0 0 0 4px color-mix(in srgb, var(--good) 22%, transparent); }
+.stamp { font: 400 0.78rem var(--mono); color: var(--muted); margin-left: auto; }
+.status { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.status li { display: grid; grid-template-columns: 5.2rem 1fr; gap: 12px; font-size: 0.93rem; align-items: baseline; }
+.status li span:last-child { min-width: 0; }
+.st { font: 600 0.68rem/1.8 var(--mono); letter-spacing: 0.08em; text-transform: uppercase; }
+.st.run { color: var(--good); } .st.queue { color: var(--muted); } .st.done { color: var(--accent); }
+footer { font: 400 0.82rem var(--mono); color: var(--muted); border-top: 1px solid var(--line); padding-top: 18px; }
+a { color: var(--accent); }
+a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+@media (max-width: 520px) {
+  .row { grid-template-columns: 1fr; gap: 4px; }
+  .f { grid-template-columns: 1fr; gap: 4px; }
+  .layer { grid-template-columns: 2.4rem 1fr; }
+  .layer .spd { grid-column: 2; text-align: left; }
+}
+</style>
+
+</head>
+<body>
+<main class="wrap">
+  <header style="display:flex;flex-direction:column;gap:16px">
+    <div class="eyebrow">Build log #1 · Nov 9, 2026</div>
+    <h1>A <span class="big">122B</span> model on a <span class="big">32 GB</span> MacBook</h1>
+    <p class="lede">I have an M1 Pro with 32 GB of RAM and no way to upgrade it. I wanted a serious local coding model anyway, so I'm building my own way around the limit: a native Swift and Metal engine, built on MLX, that streams mixture-of-experts weights from the SSD.</p>
+  </header>
+
+  <section class="now" aria-labelledby="now-h">
+    <div class="now-head"><span class="dot" aria-hidden="true"></span><h2 id="now-h">Now running</h2><span class="stamp">updated Nov 10, 2026 · 02:38 UTC</span></div>
+    <ul class="status">
+      <li><span class="st run">running</span><span>12-task hidden-test exam on the shrunk 122B · 4 of 12 done (3 pass, 1 false win caught), task 5 in progress</span></li>
+      <li><span class="st queue">queued</span><span>35B in my Swift engine vs the same model on Ollama: speed plus a real task</span></li>
+      <li><span class="st queue">queued</span><span>The same 12-task exam on Qwen3-Next-80B</span></li>
+      <li><span class="st queue">queued</span><span>Speed race for the exact 2-bit → 4-bit expert conversion</span></li>
+      <li><span class="st queue">queued</span><span>Profiling and shrinking Qwen3-Next-80B to my own code</span></li>
+    </ul>
+  </section>
+
+  <section>
+    <div class="eyebrow">The problem</div>
+    <h2>The model is twice the size of the RAM</h2>
+    <div class="budget" role="img" aria-label="Qwen3.5-122B at 4-bit is 64 GB on disk; the Mac has 32 GB of RAM; about 13 GB of it holds cached experts.">
+      <div class="row"><span>Model on SSD</span><div class="bar"><i style="width:100%"></i><b style="color:#fff">64 GB</b></div></div>
+      <div class="row"><span>Mac's RAM</span><div class="bar"><i style="width:50%"></i><b>32 GB</b></div></div>
+      <div class="row"><span>Expert cache in RAM</span><div class="bar"><i style="width:20.8%"></i><b>13.3 GB</b></div></div>
+    </div>
+    <p>Mixture-of-experts models only use a small slice of their experts for each token. So the whole model lives on the SSD, and the experts that actually get used stay cached in RAM. Reads run through 8 parallel lanes, plus a separate relay for rarely used experts so they never block the common ones. In this setup, 74–80% of expert reads come straight from RAM.</p>
+    <p class="note">I approached it like a network engineer: layers with one job each, one protocol between parts, separate links so traffic never blocks, and escalation when a layer can't handle something.</p>
+  </section>
+
+  <section>
+    <div class="eyebrow">The design</div>
+    <h2>A four-layer brain stack</h2>
+    <p>Each layer only gets a task if the one below it fails its own checks. Most tasks should never reach the slow giants.</p>
+    <div class="stack">
+      <div class="layer"><span class="n">L1</span><div class="what"><strong>Qwen3.5-9B</strong><small>quick, simple tasks</small></div><span class="spd">15–33 tok/s</span></div>
+      <div class="layer"><span class="n">L2</span><div class="what"><strong>Qwen3.6-35B-A3B</strong><small>most everyday coding · fits in RAM</small></div><span class="spd">53 tok/s</span></div>
+      <div class="layer"><span class="n">L3</span><div class="what"><strong>Qwen3-Next-80B-A3B</strong><small>hard tasks · streamed from SSD</small></div><span class="spd">2.1 tok/s</span></div>
+      <div class="layer"><span class="n">L4</span><div class="what"><strong>Qwen3.5-122B-A10B</strong><small>last resort · streamed from SSD</small></div><span class="spd">1.5 tok/s</span></div>
+    </div>
+    <p class="arrow">↑ a task climbs only when its checks fail · L3 and L4 share one slot and swap in about a minute</p>
+  </section>
+
+  <section>
+    <div class="eyebrow">This week's numbers</div>
+    <h2>Big brains, streamed from the SSD</h2>
+    <p>Writing speed, plus a 4-problem coding check graded by hidden tests. All on the same laptop.</p>
+    <div class="tbl"><table>
+      <thead><tr><th>Model</th><th>Speed</th><th>Coding check</th></tr></thead>
+      <tbody>
+        <tr><td>Qwen3.5-122B-A10B, 4-bit</td><td class="num">1.52 tok/s</td><td class="num">3/4 · 550 s</td></tr>
+        <tr><td>Same, shrunk to my own code (rare experts at 2-bit)</td><td class="num">1.43 tok/s</td><td class="num">4/4 · 435 s</td></tr>
+        <tr><td>Qwen3-Next-80B-A3B, 4-bit (only a 5.7 GB cache)</td><td class="num">2.07 tok/s</td><td class="num">3/4 · 174 s</td></tr>
+      </tbody>
+    </table></div>
+    <h3>Smaller models that fit fully in RAM</h3>
+    <p>Same prompt for speed, then one real task with a hidden test.</p>
+    <div class="tbl"><table>
+      <thead><tr><th>Model</th><th>Speed</th><th>Real task</th></tr></thead>
+      <tbody>
+        <tr><td>Qwen3.5-9B · Python, 16-bit + MTP speculative decoding</td><td class="num">15.5 tok/s</td><td class="num"><span class="pass">pass</span> · 52 s</td></tr>
+        <tr><td>Qwen3.5-9B · my Swift engine, 4-bit</td><td class="num">32.5 tok/s</td><td class="num"><span class="fail">fail</span> · misread the task</td></tr>
+        <tr><td>Qwen3.6-35B-A3B · Ollama</td><td class="num">53 tok/s</td><td class="num"><span class="pass">pass</span> · 17 s</td></tr>
+      </tbody>
+    </table></div>
+  </section>
+
+  <section>
+    <div class="eyebrow">What worked, what didn't</div>
+    <div class="findings">
+      <div class="f"><span class="tag good">Worked</span><p><strong>The shrink kept quality.</strong> I profiled 200k tokens of my own code, kept the experts covering 90% of the router's picks at 4-bit, and pushed the rest to 2-bit. Loss on held-out code rose only 0.66%, and the common-expert set dropped from 63.7 GB to 41 GB.</p></div>
+      <div class="f"><span class="tag bad">Didn't</span><p><strong>The shrunk model wasn't faster.</strong> Mixed 4-bit and 2-bit layers sent every pick through both precision paths. The fix converts 2-bit experts to 4-bit exactly as they come off the SSD: 2-bit levels sit on the 4-bit grid at a ×4 step, and power-of-two scales keep bf16 exact. Verified at 0.00000% difference. Speed race pending.</p></div>
+      <div class="f"><span class="tag good">Worked</span><p><strong>Swift doubled the 9B's speed</strong> compared with the Python path. Whether 4-bit costs it quality is still open.</p></div>
+      <div class="f"><span class="tag warn">Caught</span><p><strong>The self-checking loop can be fooled.</strong> On one exam task the model's own checks said "solved" and the hidden tests said no. That's why every task gets hidden tests, and false wins never reach training.</p></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="eyebrow">Next</div>
+    <h2>Running tonight</h2>
+    <ul class="next">
+      <li>A 12-task hidden-test exam on the 122B, then on the 80B</li>
+      <li>The 35B in my Swift engine against the Ollama version</li>
+      <li>The exact 2-bit-to-4-bit conversion: does it make the shrunk model faster?</li>
+      <li>Profiling and shrinking the 80B</li>
+    </ul>
+    <p>The code goes public when it reaches my finish line: 10 of 12 on the exam with zero false wins, and small tasks done in under 10 minutes.</p>
+  </section>
+
+  <footer>Every number above was measured on one 2021 MacBook Pro 16" (M1 Pro, 32 GB). Models: Qwen (Apache 2.0). Engine built on Apple's MLX.</footer>
+</main>
+
+</body>
+</html>
