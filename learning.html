@@ -220,6 +220,13 @@ blockquote { margin:0; padding: 4px 0 4px 14px; border-left: 3px solid var(--acc
         <p>Everything above fed into my main project: a layered coding brain that runs a 122B model on this 32 GB Mac. The memory limit, the fake "done" claims, the invented APIs and the agent that went too far all shaped how it's built.</p>
         <p class="lesson"><strong>Lesson:</strong> The full build history is on the progress page.</p>
       </div></article>
+      <article class="entry"><time>Nov 2026</time><div class="body">
+        <span class="kind win">Figured out</span><h3>Working with limited space</h3>
+        <p>RAM isn't the only wall. My Mac's drive is 460 GB, and every big model takes a huge bite: 64 GB for the 122B, 51 GB for the shrunk version, 42 GB for the 80B, 19 GB for the 35B. Downloading a model, converting it for my engine and testing both copies can need double the space for a while. Some nights I was down to about 50 GB free.</p>
+        <p>So I made rules. A model's original download only gets deleted after the converted copy is checked byte for byte and actually loads. New and experimental models go on an external SSD. Anything in use by a running test is never moved or deleted. And after the night an agent wiped my models, nothing gets deleted without a list of exactly what's going.</p>
+        <p>Then I wanted to contribute numbers from my 32 GB Mac to another builder's project, and their test needed a 110 GB model. The answer wasn't to delete what I'd built. It was to move one model to the external SSD for a while, clear real leftovers, and keep the test on the internal drive so the speed number stays honest.</p>
+        <p class="lesson"><strong>Lesson:</strong> Limits force you to be deliberate. Running out of room taught me the same thing running out of RAM did: know exactly what you have, what depends on it, and what can safely go.</p>
+      </div></article>
     </div>
   </section>
   <footer>Main project build history: <a href="https://github.com/nightguard-labs/code-smash-teti">Code Smash TeTi</a>. New entries get added as I go.</footer>
