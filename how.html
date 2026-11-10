@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>How I Figure Things Out</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one narrow reading column, like an engineer's notebook; the brain stack drawn as network layers */
+:root {
+  --bg: #f3f5f8;
+  --surface: #ffffff;
+  --ink: #16202e;
+  --muted: #5a6779;
+  --line: #d6dce5;
+  --accent: #2456c9;
+  --accent-soft: #e2eafb;
+  --good: #1f7a4d;
+  --bad: #b3352b;
+  --warn: #9a6a00;
+  --l1: #c9d8f6; --l2: #a9c1f0; --l3: #7f9fe4; --l4: #4f78d2;
+  --display: "Archivo", "Helvetica Neue", Arial, sans-serif;
+  --body: "IBM Plex Sans", -apple-system, "Segoe UI", sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #0f1520; --surface: #172030; --ink: #e6ebf3; --muted: #9aa7ba; --line: #2a3546;
+  --accent: #7ea2ff; --accent-soft: #1d2b47; --good: #5fcf94; --bad: #ff8577; --warn: #e8b84a;
+  --l1: #1f2c45; --l2: #263a5f; --l3: #2f4b80; --l4: #3d63ab; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #0f1520; --surface: #172030; --ink: #e6ebf3; --muted: #9aa7ba; --line: #2a3546;
+  --accent: #7ea2ff; --accent-soft: #1d2b47; --good: #5fcf94; --bad: #ff8577; --warn: #e8b84a;
+  --l1: #1f2c45; --l2: #263a5f; --l3: #2f4b80; --l4: #3d63ab; color-scheme: dark }
+
+body { background: var(--bg); color: var(--ink); font: 400 16px/1.65 var(--body); }
+.wrap { max-width: 760px; margin: 0 auto; padding-block: 40px 64px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: flex; flex-direction: column; gap: 44px; }
+h1, h2, h3 { font-family: var(--display); text-wrap: balance; margin: 0; letter-spacing: -0.01em; }
+h1 { font-size: clamp(2rem, 6vw, 3.1rem); font-weight: 800; line-height: 1.05; }
+h2 { font-size: 1.45rem; font-weight: 700; }
+h3 { font-size: 1.05rem; font-weight: 700; }
+p { margin: 0; max-width: 65ch; }
+section { display: flex; flex-direction: column; gap: 14px; }
+.eyebrow { font: 500 0.75rem/1 var(--mono); letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); }
+.lede { font-size: 1.15rem; color: var(--muted); }
+.mono { font-family: var(--mono); }
+.big { color: var(--accent); }
+
+/* memory budget */
+.budget { display: flex; flex-direction: column; gap: 10px; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 18px; }
+.row { display: grid; grid-template-columns: 9.5rem 1fr; gap: 12px; align-items: center; }
+.row span { font: 500 0.82rem/1.3 var(--mono); color: var(--muted); }
+.bar { height: 22px; border-radius: 4px; background: var(--accent-soft); position: relative; overflow: hidden; }
+.bar i { position: absolute; inset: 0 auto 0 0; background: var(--accent); border-radius: 4px; }
+.bar b { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); font: 500 0.75rem var(--mono); color: var(--ink); }
+.note { font-size: 0.85rem; color: var(--muted); }
+
+/* the brain stack as network layers */
+.stack { display: flex; flex-direction: column-reverse; gap: 6px; }
+.layer { display: grid; grid-template-columns: 3.2rem 1fr auto; gap: 14px; align-items: center; padding: 14px 16px; border-radius: 8px; color: var(--ink); }
+.layer:nth-child(1) { background: var(--l1); } .layer:nth-child(2) { background: var(--l2); }
+.layer:nth-child(3) { background: var(--l3); } .layer:nth-child(4) { background: var(--l4); color: #fff; }
+.layer .n { font: 500 0.75rem var(--mono); letter-spacing: 0.08em; }
+.layer .what { min-width: 0; }
+.layer .what strong { font-family: var(--display); font-size: 1.02rem; display: block; }
+.layer .what small { font-size: 0.85rem; opacity: 0.85; }
+.layer .spd { font: 500 0.8rem var(--mono); text-align: right; }
+.arrow { font: 500 0.78rem var(--mono); color: var(--muted); }
+
+/* tables */
+.tbl { overflow-x: auto; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); }
+table { width: 100%; border-collapse: collapse; font-size: 0.92rem; min-width: 460px; }
+th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font: 500 0.72rem var(--mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+tr:last-child td { border-bottom: 0; }
+td.num { font-family: var(--mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.pass { color: var(--good); font-weight: 600; } .fail { color: var(--bad); font-weight: 600; }
+
+/* findings */
+.findings { display: flex; flex-direction: column; gap: 12px; }
+.f { display: grid; grid-template-columns: 5.5rem 1fr; gap: 14px; padding-block: 12px; border-top: 1px solid var(--line); }
+.f .tag { font: 600 0.72rem/1.6 var(--mono); letter-spacing: 0.08em; text-transform: uppercase; }
+.tag.good { color: var(--good); } .tag.bad { color: var(--bad); } .tag.warn { color: var(--warn); }
+.f p { font-size: 0.97rem; }
+ul.next { margin: 0; padding-left: 1.2rem; display: flex; flex-direction: column; gap: 6px; max-width: 65ch; }
+.now { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 18px; gap: 12px; }
+.now-head { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+.now-head h2 { font-size: 1.1rem; }
+.dot { width: 9px; height: 9px; border-radius: 50%; background: var(--good); box-shadow: 0 0 0 4px color-mix(in srgb, var(--good) 22%, transparent); }
+.stamp { font: 400 0.78rem var(--mono); color: var(--muted); margin-left: auto; }
+.status { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.status li { display: grid; grid-template-columns: 5.2rem 1fr; gap: 12px; font-size: 0.93rem; align-items: baseline; }
+.status li span:last-child { min-width: 0; }
+.st { font: 600 0.68rem/1.8 var(--mono); letter-spacing: 0.08em; text-transform: uppercase; }
+.st.run { color: var(--good); } .st.queue { color: var(--muted); } .st.done { color: var(--accent); }
+footer { font: 400 0.82rem var(--mono); color: var(--muted); border-top: 1px solid var(--line); padding-top: 18px; }
+a { color: var(--accent); }
+a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+@media (max-width: 520px) {
+  .row { grid-template-columns: 1fr; gap: 4px; }
+  .f { grid-template-columns: 1fr; gap: 4px; }
+  .layer { grid-template-columns: 2.4rem 1fr; }
+  .layer .spd { grid-column: 2; text-align: left; }
+}
+</style>
+<style>
+.nav { display:flex; gap:18px; flex-wrap:wrap; font: 500 0.82rem var(--mono); }
+.nav a { text-decoration: none; } .nav a[aria-current] { color: var(--ink); }
+.entries { display:flex; flex-direction:column; gap:0; }
+.entry { display:grid; grid-template-columns: 7rem 1fr; gap: 16px; padding-block: 18px; border-top: 1px solid var(--line); }
+.entry time { font: 500 0.78rem/1.7 var(--mono); color: var(--muted); }
+.entry .body { display:flex; flex-direction:column; gap:8px; min-width:0; }
+.map { display:grid; grid-template-columns: 1fr auto 1fr; gap: 6px 12px; align-items: baseline; font-size: 0.93rem; }
+.map .from { font-weight:600; } .map .to { color: var(--accent); font-weight: 500; } .map .ar { font-family: var(--mono); color: var(--muted); }
+blockquote { margin:0; padding: 4px 0 4px 14px; border-left: 3px solid var(--accent); color: var(--muted); font-style: italic; max-width: 60ch; }
+@media (max-width: 520px) { .entry { grid-template-columns: 1fr; gap: 4px; } .map { grid-template-columns: 1fr; gap: 0; } .map .ar { display:none } .map .to { margin-bottom: 8px; } }
+</style>
+
+</head>
+<body>
+<main class="wrap">
+  <nav class="nav" aria-label="Site"><a href="./">Build log</a><a href="how.html" aria-current="page">How I figure things out</a><a href="https://github.com/nightguard-labs">GitHub</a></nav>
+
+  <header style="display:flex;flex-direction:column;gap:16px">
+    <div class="eyebrow">Running log · started Nov 2026</div>
+    <h1>How I figure things out</h1>
+    <p class="lede">I don't have a background in AI or neuroscience. I work things out one step at a time: if this is true, then this has to come next. This page keeps track of how the design came together and the calls that shaped it.</p>
+  </header>
+
+  <section>
+    <div class="eyebrow">The method</div>
+    <h2>Start from the limit, then follow the logic</h2>
+    <p>I start from the constraint I can't change and ask what has to be true to get around it. Then I think in network layers: each layer gets one job, every part speaks the same protocol, traffic gets its own lanes so nothing blocks, and anything a layer can't handle moves up the stack.</p>
+  </section>
+
+  <section>
+    <div class="eyebrow">Log</div>
+    <div class="entries">
+
+      <article class="entry"><time datetime="2026-11">Nov 2026</time><div class="body">
+        <h3>The starting point: 32 GB I can't upgrade</h3>
+        <p>My MacBook has 32 GB of RAM and that's final. I saw that other people and companies had designed ways around limits like that, so I asked the obvious question.</p>
+        <blockquote>What's stopping me from making my own way?</blockquote>
+        <p>Every piece of the project exists because of that one limit. With unlimited RAM there'd be no need for streaming, relays or a stack.</p>
+      </div></article>
+
+      <article class="entry"><time datetime="2026-11">Nov 2026</time><div class="body">
+        <h3>Network layering became the brain's layout</h3>
+        <p>I didn't copy this from anywhere. Each idea from network layering had a direct counterpart:</p>
+        <div class="map">
+          <span class="from">Layers with one job, escalating what they can't handle</span><span class="ar">→</span><span class="to">The brain stack: 9B → 35B → 80B → 122B</span>
+          <span class="from">One standard protocol between all parts</span><span class="ar">→</span><span class="to">Everything native Swift + Metal</span>
+          <span class="from">Separate links so traffic never blocks</span><span class="ar">→</span><span class="to">8 SSD lanes, plus a separate relay for rarely used experts</span>
+          <span class="from">Caching close to where it's used</span><span class="ar">→</span><span class="to">Hot experts in RAM, the rest on the SSD</span>
+          <span class="from">Failover</span><span class="ar">→</span><span class="to">A task moves up a layer when its checks fail</span>
+        </div>
+        <blockquote>Every part needs to be the same for the best communication.</blockquote>
+      </div></article>
+
+      <article class="entry"><time datetime="2026-11">Nov 2026</time><div class="body">
+        <h3>It turned out to look like a brain</h3>
+        <p>Only after the design came together did I find out it mirrors how the human brain is organized: fast reflexes handle the easy stuff, slow deliberate thinking handles the hard stuff, memories get consolidated during sleep, and old memories take longer to recall. I got there from the logic alone, which tells me it's the natural answer to the problem: handle the common things fast and cheap, and only escalate what's hard.</p>
+      </div></article>
+
+      <article class="entry"><time datetime="2026-11">Nov 2026</time><div class="body">
+        <h3>Calls that paid off</h3>
+        <p><strong>Converting the 9B to Swift.</strong> I asked whether moving the small model into the same Swift engine would help. Measured result: 2.1× faster (32.5 vs 15.5 tok/s). Its quality at 4-bit is still being tested.</p>
+        <p><strong>Not wasting test time.</strong> I cut a re-test of the 122B from the final round because it couldn't change any decision. That freed hours of compute for the tests that mattered.</p>
+        <p><strong>Making speed part of "done."</strong> Working wasn't enough for me. I added a hard requirement that small tasks finish in under 10 minutes.</p>
+        <blockquote>At the end it needs to be usable, not waiting 40 minutes for it to get something done.</blockquote>
+        <p><strong>Putting the 80B before the 122B.</strong> The 80B scored the same as the 122B on the coding check at about 3× the speed. So it goes first, and the slow giant becomes the last resort.</p>
+        <p><strong>Cleaning up as I go.</strong> Once a model is converted and verified, the original download gets deleted so the disk doesn't fill up. That freed 45 GB the same night.</p>
+      </div></article>
+
+    </div>
+  </section>
+
+  <footer>New entries get added as the project grows.</footer>
+</main>
+
+</body>
+</html>
