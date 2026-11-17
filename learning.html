@@ -227,6 +227,17 @@ blockquote { margin:0; padding: 4px 0 4px 14px; border-left: 3px solid var(--acc
         <p>Then I wanted to contribute numbers from my 32 GB Mac to another builder's project, and their test needed a 110 GB model. The answer wasn't to delete what I'd built. It was to move one model to the external SSD for a while, clear real leftovers, and keep the test on the internal drive so the speed number stays honest.</p>
         <p class="lesson"><strong>Lesson:</strong> Limits force you to be deliberate. Running out of room taught me the same thing running out of RAM did: know exactly what you have, what depends on it, and what can safely go.</p>
       </div></article>
+      <article class="entry"><time>Nov 2026</time><div class="body">
+        <span class="kind win">Figured out</span><h3>Reading code is translation, not logic</h3>
+        <p>I found a real regex bug in my own status script: <code>[a-z0-9]</code> didn't allow a dash, so task names like <code>12-textstats-py</code> were skipped (87 matches instead of 125). The fix was one character. Finding it wasn't the hard part. Reading the symbols was: I'd translate one, start reasoning, hit the next symbol, stop to translate it, then have to reread my own thinking to get the logic back. The same thing a language model does when it rereads its whole chat.</p>
+        <p>So I split it into two passes: translate first (every symbol in plain English), then reason on the English. To speed up the first pass I built a notepad with a phrasebook: <a href="memory-cell.html">Memory Cell</a>. The goal is to need it less over time.</p>
+        <p class="lesson"><strong>Lesson:</strong> When something feels hard, find which part is actually hard. For me it was the translation, not the logic, and once I named it I could build a tool for exactly that part.</p>
+      </div></article>
+      <article class="entry"><time>Nov 2026</time><div class="body">
+        <span class="kind win">Figured out</span><h3>The test was wrong, not the code</h3>
+        <p>Five runs in a row, my coding brain wrote correct Python and still "failed." Every time, the tests the model wrote for itself had a new mistake. Moving that exact work to code (the model picks the inputs, two answer keys compute the answers, code writes the tests) took the same task from a 9-minute stop to a 2-minute solve.</p>
+        <p class="lesson"><strong>Lesson:</strong> Before fixing the thing that failed, check the thing that judged it.</p>
+      </div></article>
     </div>
   </section>
   <footer>Main project build history: <a href="https://github.com/nightguard-labs/code-smash-teti">Code Smash TeTi</a>. New entries get added as I go.</footer>
