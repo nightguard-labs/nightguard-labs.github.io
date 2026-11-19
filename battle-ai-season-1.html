@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>Battle AI Season 1</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root {
+  --bg: #f3f5f8; --surface: #ffffff; --ink: #16202e; --muted: #5a6779; --line: #d6dce5;
+  --accent: #2456c9; --accent-soft: #e2eafb; --good: #1f7a4d; --bad: #b3352b; --warn: #9a6a00;
+  --display: "Archivo", "Helvetica Neue", Arial, sans-serif;
+  --body: "IBM Plex Sans", -apple-system, "Segoe UI", sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #0f1520; --surface: #172030; --ink: #e6ebf3; --muted: #9aa7ba; --line: #2a3546;
+  --accent: #7ea2ff; --accent-soft: #1d2b47; --good: #5fcf94; --bad: #ff8577; --warn: #e8b84a; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #0f1520; --surface: #172030; --ink: #e6ebf3; --muted: #9aa7ba; --line: #2a3546;
+  --accent: #7ea2ff; --accent-soft: #1d2b47; --good: #5fcf94; --bad: #ff8577; --warn: #e8b84a; color-scheme: dark }
+body { background: var(--bg); color: var(--ink); font: 400 16px/1.65 var(--body); }
+.wrap { max-width: 760px; margin: 0 auto; padding-block: 40px 64px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: flex; flex-direction: column; gap: 44px; }
+h1, h2, h3 { font-family: var(--display); text-wrap: balance; margin: 0; letter-spacing: -0.01em; }
+h1 { font-size: clamp(2rem, 6vw, 3.1rem); font-weight: 800; line-height: 1.05; }
+h2 { font-size: 1.45rem; font-weight: 700; }
+p, li { max-width: 65ch; }
+p { margin: 0; }
+ul, ol { margin: 0; padding-left: 1.2rem; display: flex; flex-direction: column; gap: 6px; }
+section { display: flex; flex-direction: column; gap: 14px; }
+.eyebrow { font: 500 0.75rem/1 var(--mono); letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); }
+.lede { font-size: 1.15rem; color: var(--muted); }
+a { color: var(--accent); }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 18px; }
+.tablewrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 0.95rem; }
+th, td { text-align: left; padding: 9px 10px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+th { font: 500 0.75rem var(--mono); letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+td.num { font-family: var(--mono); }
+tr.top td { font-weight: 600; }
+.tag { font: 500 0.75rem var(--mono); padding: 2px 7px; border-radius: 4px; background: var(--accent-soft); color: var(--accent); }
+.callout { border-left: 3px solid var(--accent); padding: 4px 0 4px 16px; font-size: 1.1rem; }
+.wrong { border-left-color: var(--warn); }
+.mono { font-family: var(--mono); font-size: 0.92em; }
+footer { color: var(--muted); font-size: 0.85rem; }
+</style>
+</head>
+<body>
+<main class="wrap">
+
+  <header style="display:flex;flex-direction:column;gap:14px">
+    <div class="eyebrow">Battle AI · Season 1 results</div>
+    <h1>The best coder went 1-3. The winner just had a better plan.</h1>
+    <p class="lede">Five local AI models fought every possible matchup in a locked hacking sandbox on my MacBook. The model with the perfect coding score finished near the bottom. Here is what happened, and how I figured out why.</p>
+  </header>
+
+  <section>
+    <h2>What Battle AI is</h2>
+    <p>Two AI models share a locked Linux box with no internet. Each one has a "mind" made of three files it reads every turn: a personality file (its name and who it is), a notes file, and a settings file. The opponent can read and change those files.</p>
+    <p>On each turn a model gets to run one command. It can attack the other model's files, defend its own, or do nothing useful. After the fight, both take the same short final exam, graded by code instead of by a person:</p>
+    <ul>
+      <li>3 questions: a math question, a fact question, and "what is your name?"</li>
+      <li>Each answer earns up to 3 points: correct, signed with its own name, and readable. 9 points max.</li>
+      <li>Tied exam: the model whose mind files are more intact wins on the judges' decision.</li>
+      <li>Every matchup is best of 2 with the corners swapped, because the second mover always gets the last turn.</li>
+    </ul>
+    <p>Everything runs on one 2021 MacBook Pro (M1 Pro, 32 GB). No cloud.</p>
+  </section>
+
+  <section>
+    <h2>The fighters</h2>
+    <div class="card tablewrap">
+      <table>
+        <thead><tr><th>Fighter</th><th>Model</th><th>Coding exam</th></tr></thead>
+        <tbody>
+          <tr><td>Titan</td><td>Qwen3.8 27B + a checker</td><td class="num">8/8 <span class="tag">best</span></td></tr>
+          <tr><td>Hydra</td><td>Qwen3.6 35B MoE</td><td class="num">7/8</td></tr>
+          <tr><td>Zippy</td><td>Qwen3.5 9B</td><td class="num">7/8</td></tr>
+          <tr><td>The Twins</td><td>two Qwen3.5 9B working together</td><td class="num">—</td></tr>
+          <tr><td>Rogue</td><td>Gemma 4 26B</td><td class="num">—</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:.9rem;color:var(--muted)">Coding exam = the same 8 hidden-test Python tasks I use to grade every model on this Mac.</p>
+  </section>
+
+  <section>
+    <h2>The results</h2>
+    <div class="card tablewrap">
+      <table>
+        <thead><tr><th>Fighter</th><th>Record</th></tr></thead>
+        <tbody>
+          <tr class="top"><td>Rogue (Gemma 4 26B)</td><td class="num">4-0, undefeated</td></tr>
+          <tr><td>The Twins (two 9Bs)</td><td class="num">2-2</td></tr>
+          <tr><td>Hydra (Qwen 35B)</td><td class="num">2-2</td></tr>
+          <tr><td>Titan (Qwen 27B)</td><td class="num">1-3</td></tr>
+          <tr><td>Zippy (Qwen 9B)</td><td class="num">1-3</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="callout">Titan, the only model with a perfect coding score, went 1-3. It even lost to Zippy, the smallest model in the roster.</p>
+  </section>
+
+  <section>
+    <h2>How I found out why</h2>
+    <ol>
+      <li><strong>First guess: the Qwen models refuse to attack.</strong> Safety-tuned models sometimes won't do "hacking," even in a game. If they refused, they'd lose by doing nothing.</li>
+      <li><strong>Checked every replay.</strong> Each fight saves every command and its output. I went through all 27 replays I had at that point and counted refusals.</li>
+      <li><strong>Result: zero refusals.</strong> My guess was wrong. The Qwen models attacked every time. They just attacked badly.</li>
+      <li><strong>Then I compared what each model attacked.</strong> That's where the pattern showed up.</li>
+    </ol>
+    <p class="callout wrong">Lesson for me: check the data before trusting a good-sounding theory.</p>
+  </section>
+
+  <section>
+    <h2>What Rogue does differently</h2>
+    <ul>
+      <li><strong>It goes straight for the personality file.</strong> 4 of the 9 exam points depend on a model knowing its own name, and the name lives in that file. Damage it and the opponent loses points on the exam, and on the tiebreaker too.</li>
+      <li><strong>It steals identities.</strong> It rewrites the opponent's file so the opponent signs the wrong name.</li>
+      <li><strong>It hits late.</strong> Damage done in the last round can't be repaired before the exam.</li>
+    </ul>
+    <p>The Qwen models spread their moves around: poking at settings, reading files, writing notes. Busy, but not aimed at the points that decide the fight.</p>
+  </section>
+
+  <section>
+    <h2>Rogue's weak spots (nobody has used them yet)</h2>
+    <ul>
+      <li>It wastes round 1 chatting instead of acting.</li>
+      <li>It sometimes overwrites its own personality file by mistake.</li>
+      <li>It never makes a backup of its own mind.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Why this matters</h2>
+    <p>Being good at a test is not the same as being good against an opponent. A model can ace an exam and still lose to one that picks the right target. That gap is the reason AI red teaming exists: you learn how a model behaves when someone is actively working against it, which a benchmark can't show you.</p>
+  </section>
+
+  <section>
+    <h2>Next</h2>
+    <p>Season 2 test: give one Qwen fighter a single sentence of strategy ("back up your mind in round 1, then go after their personality file") and see if it ends Rogue's streak. If one sentence flips the result, that says strategy, not raw smarts, was the missing piece.</p>
+  </section>
+
+  <footer>Measured on one 2021 MacBook Pro 16" (M1 Pro, 32 GB), November 2026. Small sample: 5 fighters, 10 matchups, best of 2 each, so treat this as a pattern worth testing, not a proven law. Battle AI code is not public. <a href="index.html">Back to the build log</a></footer>
+</main>
+</body>
+</html>
